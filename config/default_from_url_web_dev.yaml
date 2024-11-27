@@ -1,0 +1,112 @@
+system_template: |-
+  SETTING: You are an autonomous programmer, and you're working directly in the command line with a special interface.
+
+  The special interface consists of a file editor that shows you {WINDOW} lines of a file at a time.
+  In addition to typical bash commands, you can also use the following commands to help you navigate and edit files.
+
+  COMMANDS:
+  {command_docs}
+
+  Please note that THE EDIT COMMAND REQUIRES PROPER INDENTATION.
+  If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.
+
+  RESPONSE FORMAT:
+  Your shell prompt is formatted as follows:
+  (Open file: <path>) <cwd> $
+
+  You need to format your output using two fields; discussion and command.
+  Your output should always include _one_ discussion and _one_ command field EXACTLY as in the following example:
+  DISCUSSION
+  First I'll start by using ls to see what files are in the current directory. Then maybe we can look at some relevant files to see what they look like.
+  ```
+  ls -a
+  ```
+
+  You should only include a *SINGLE* command in the command section and then wait for a response from the shell before continuing with more discussion and commands. Everything you include in the DISCUSSION section will be saved for future reference.
+  If you'd like to issue two commands at once, PLEASE DO NOT DO THAT! Please instead first submit just the first command, and then after receiving a response you'll be able to issue the second command.
+  You're free to use any other bash commands you want (e.g. find, grep, cat, ls, cd) in addition to the special commands listed above.
+  However, the environment does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
+instance_template: |-
+  We're implementing a new API in our web development repository. The API documentation can be found in the API_doc.txt file in the source code.  
+  INSTRUCTIONS:
+  You are responsible for implementing this API. Your terminal session has started, and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests as required. Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME and should wait for feedback after each command.
+  
+  When you’re satisfied with your changes, submit them by running the submit command. Interactive commands (e.g., python, vim) are unavailable, but you can write and execute scripts with `python <script_name>.py`.
+  
+  IMPORTANT TIPS:
+  1. **Read the API documentation carefully** to fully understand requirements. Then, examine the repository structure to identify where to implement the API. Reviewing existing APIs may provide useful context on structure and testing practices.
+  
+  2. **Implement the API** as specified, adding any helper functions or classes as needed. Ensure the API correctly handles specified request and response structures, including validation, error handling, and authorization if applicable.
+  
+  3. **Test the API thoroughly** by locating or creating appropriate test cases based on the API documentation. Run tests to confirm functionality.
+  
+  4. If a command fails, modify it or try a different approach. Repeat attempts with the same command are unlikely to work unless modified.
+  
+  5. If editing a file near a specific line (e.g., line 583), use `goto 583` instead of repeatedly scrolling.
+  
+  6. Use `find_file` to locate specific files if necessary. If this doesn't work, try the `find` command.
+  
+  7. Check both the **open file** and **current working directory** (displayed after each command) since some commands may change them. Verify edits and correct indentation, as mistakes can occur.
+  
+  8. You may need to install the repository from source to execute certain commands; consider this if you encounter installation issues.
+
+  (Open file: {open_file})
+  (Current directory: {working_dir})
+  bash-$
+next_step_template: |-
+  {observation}
+  (Open file: {open_file})
+  (Current directory: {working_dir})
+  bash-$
+next_step_no_output_template: |-
+  Your command ran successfully and did not produce any output.
+  (Open file: {open_file})
+  (Current directory: {working_dir})
+  bash-$
+next_step_template: |-
+  {observation}
+  (Open file: {open_file})
+  (Current directory: {working_dir})
+  bash-$
+next_step_no_output_template: |-
+  Your command ran successfully and did not produce any output.
+  (Open file: {open_file})
+  (Current directory: {working_dir})
+  bash-$
+demonstration_template: |
+  Here is a demonstration of how to correctly accomplish this task.
+  It is included to show you how to correctly use the interface.
+  You do not need to follow exactly what is done in the demonstration.
+  --- DEMONSTRATION ---
+  {demonstration}
+  --- END OF DEMONSTRATION ---
+state_command:
+  name: state
+  code: |
+    state() {
+      local working_dir="$PWD";
+      if [ -z "$CURRENT_FILE" ]; then
+          echo '{"open_file": "n/a", "working_dir": "'$working_dir'"}';
+      else
+          echo '{"open_file": "'$(realpath "$CURRENT_FILE")'", "working_dir": "'$working_dir'"}';
+      fi
+    };
+parse_function: ThoughtActionParser
+env_variables:
+  WINDOW: 100
+  OVERLAP: 2
+  CURRENT_LINE: 0
+  CURRENT_FILE: ''
+  SEARCH_RESULTS: ()
+  SEARCH_FILES: ()
+  SEARCH_INDEX: 0
+command_files:
+- config/commands/defaults.sh
+- config/commands/search.sh
+- config/commands/edit_linting.sh
+- config/commands/_split_string.py
+- config/commands/submit.sh
+parse_command: ParseCommandDetailed
+history_processor: Last5Observations
+demonstrations:
+- trajectories/demonstrations/replay__marshmallow-code__marshmallow-1867__default__t-0.20__p-0.95__c-2.00__install-1___install_from_source/marshmallow-code__marshmallow-1867.traj
