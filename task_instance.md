@@ -1,16 +1,21 @@
-Task Title: Implement GET /api/articles API Endpoint
+1. Task Title: Implement PUT /api/user API Endpoint
 
-Task Description:
+2. Task Description:
 
-Develop the GET /api/articles endpoint for a Flask backend application. This API endpoint should allow clients to retrieve a list of articles from the database with optional filtering and pagination.
+Develop an API endpoint for updating a user's profile information in a Flask backend application.
 
-Functional Requirements:
-
-Accept optional query parameters such as tag, author, favorited, limit, and offset to filter and paginate the articles.
-Return a list of articles matching the query parameters, formatted as JSON.
-Outcome:
-
-The endpoint should return articles based on the provided filters and support pagination for large datasets. The response must be serialized and formatted properly for API consumers.
+3. Functional Overview:
+-Endpoint: PUT /api/user
+-Description:
+    - Allows authenticated users to update their profile details.
+    - Supports updating fields such as password and other user attributes.
+    - Ensures sensitive fields like password are handled securely.
+-Authentication:
+    - Requires the user to be logged in (JWT-based authentication).
+-Input:
+    - Accepts user details in the request body following a predefined schema.
+-Outcome:
+    - Updates the current user's profile in the database and returns the updated user data in JSON format.
 
 
 
