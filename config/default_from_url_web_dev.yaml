@@ -27,7 +27,7 @@ system_template: |-
   You're free to use any other bash commands you want (e.g. find, grep, cat, ls, cd) in addition to the special commands listed above.
   However, the environment does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
 instance_template: |-
-  We're implementing a new API in our web development repository. The API documentation can be found in the API_doc.txt file in the source code.  
+  We're implementing a new API in our web development repository. The API documentation can be found in the API_documentation.txt file in the source code.  
   INSTRUCTIONS:
   You are responsible for implementing this API. Your terminal session has started, and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests as required. Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME and should wait for feedback after each command.
   
@@ -109,4 +109,4 @@ command_files:
 parse_command: ParseCommandDetailed
 history_processor: Last5Observations
 demonstrations:
-- trajectories/demonstrations/replay__marshmallow-code__marshmallow-1867__default__t-0.20__p-0.95__c-2.00__install-1___install_from_source/marshmallow-code__marshmallow-1867.traj
+- realworld/eb4f50.traj
