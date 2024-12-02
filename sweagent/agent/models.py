@@ -11,6 +11,7 @@ import together
 from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic, AnthropicBedrock
 from groq import Groq
 from openai import AzureOpenAI, BadRequestError, OpenAI
+import google.generativeai as genai
 from simple_parsing.helpers.serialization.serializable import FrozenSerializable, Serializable
 from tenacity import (
     retry,
@@ -854,6 +855,102 @@ class TogetherModel(BaseModel):
         return response
 
 
+class GoogleModel(BaseModel):
+    # Check https://ai.google.dev/gemini-api/docs/models/gemini for model names, context
+    # Check https://ai.google.dev/pricing#1_5flash for pricing, rate limits
+    MODELS = {
+        "models/gemini-1.5-flash": {
+            "max_context": 1_048_576,
+            "cost_per_input_token": 1e-07,
+            "cost_per_output_token": 1e-07,
+        },
+        "models/gemini-1.5-flash-8b": {
+            "max_context": 1_048_576,
+            "cost_per_input_token": 1e-07,
+            "cost_per_output_token": 1e-07,
+        },
+        "models/gemini-1.5-pro": {
+            "max_context": 2_097_152,
+            "cost_per_input_token": 1e-07,
+            "cost_per_output_token": 1e-07,
+        },
+        "models/text-embedding-004": {
+            "max_context": 2048,
+            "cost_per_input_token": 1e-07,
+            "cost_per_output_token": 1e-07,
+        },
+    }
+
+    SHORTCUTS = {
+        "gemini-1.5-flash": "models/gemini-1.5-flash",
+        "gemini-1.5-flash-8b": "models/gemini-1.5-flash-8b",
+        "gemini-1.5-pro": "models/gemini-1.5-pro",
+        "text-embedding-004": "models/text-embedding-004",
+    }
+
+    def __init__(self, args: ModelArguments, commands: list[Command]):
+        super().__init__(args, commands)
+
+        # Set Google key
+        genai.configure(api_key=keys_config["GOOGLE_API_KEY"])
+
+    def history_to_messages(
+        self,
+        history: list[dict[str, str]],
+        is_demonstration: bool = False,
+    ) -> str | list[dict[str, str]]:
+        """
+        Create `messages` by filtering out all keys except for role/content per `history` turn
+        """
+        history = [entry for entry in history if entry["role"] != "system"]
+        if is_demonstration:
+            return "\n".join([entry["content"] for entry in history])
+        # Return history components with just role, content fields
+        return [{"parts" if k == "content" else k: v for k, v in entry.items() \
+                 if k in ["role", "content"]} for entry in history]
+
+    @retry(
+        wait=wait_random_exponential(min=1, max=15),
+        reraise=True,
+        stop=stop_after_attempt(_MAX_RETRIES),
+        retry=retry_if_not_exception_type((CostLimitExceededError, RuntimeError)),
+    )
+    def query(self, history: list[dict[str, str]]) -> str:
+        """
+        Query the Google API with the given `history` and return the response.
+        """
+        try:
+            # Perform API call
+            system_instruction_arr = [{k: v for k, v in entry.items() \
+                                       if k in ["role", "content"] and entry["role"] == "system"} \
+                                       for entry in history]
+            system_instruction = system_instruction_arr[0]["content"] if len(system_instruction_arr) > 0 else None
+
+            model = genai.GenerativeModel(
+                model_name=self.api_model,
+                generation_config={
+                    "temperature": self.args.temperature,
+                    "top_p": self.args.top_p,
+                },
+                system_instruction=system_instruction,
+            )
+            messages = self.history_to_messages(history)
+            chat =  model.start_chat(history=messages[:-1])
+            response = chat.send_message(messages[-1])
+        except BadRequestError as e:
+            logger.exception("BadRequestError")
+            if "context window" in str(e) or getattr(e, "error", {}).get("code") == "context_length_exceeded":
+                msg = f"Context window ({self.model_metadata['max_context']} tokens) exceeded"
+                raise ContextWindowExceededError(msg) from e
+            else:
+                raise e
+        # Calculate + update costs, return response
+        input_tokens = response.usage_metadata.prompt_token_count
+        output_tokens = response.usage_metadata.candidates_token_count
+        self.update_stats(input_tokens, output_tokens)
+        return response.text
+
+
 class HumanModel(BaseModel):
     MODELS = {"human": {}}
 
@@ -1039,6 +1136,8 @@ def get_model(args: ModelArguments, commands: list[Command] | None = None):
         return TogetherModel(args, commands)
     elif args.model_name in GroqModel.SHORTCUTS:
         return GroqModel(args, commands)
+    elif args.model_name in GoogleModel.SHORTCUTS:
+        return GoogleModel(args, commands)
     elif args.model_name == "instant_empty_submit":
         return InstantEmptySubmitTestModel(args, commands)
     else:
