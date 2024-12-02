@@ -91,6 +91,24 @@ def create_file_with_dirs(file_path):
     if not path.exists():
         path.touch()
 
+def add_task_instance_prefix(api_ids):
+    return f"""
+    Objective:
+    Develop and implement API endpoints for a Flask backend application.
+
+    Task Details:
+    The APIs to be implemented are identified by their unique IDs, as follows: {", ".join(map(str, api_ids))}. 
+    Detailed descriptions of each API, including their purpose, endpoints, methods, 
+    and expected behavior, are provided below in JSON format.
+
+    Requirements:
+    - Implement each API according to its description and specified behavior.
+    - Ensure proper handling of request and response data using Flask conventions.
+    - Use appropriate authentication and validation mechanisms where necessary.
+    - Follow best practices for modular and maintainable code.
+    
+    """
+
 def mask(in_dir, out_dir, api_ids, docker_path, image_tag="my_image_tag", container_name="my_container", image_remove=False):
     """
         api: dict(endpoint: str, method: str)
@@ -149,6 +167,7 @@ def mask(in_dir, out_dir, api_ids, docker_path, image_tag="my_image_tag", contai
                 print(out_file)
                 create_file_with_dirs(out_file)
                 with open(out_file, 'w') as md_file:
+                    md_file.write(add_task_instance_prefix(api_ids))
                     md_file.write("```json\n")
                     md_file.write(json.dumps(data, indent=4, sort_keys=True))
                     md_file.write("\n```")
