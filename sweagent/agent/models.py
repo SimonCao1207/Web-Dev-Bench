@@ -12,6 +12,7 @@ from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic, AnthropicBedrock
 from groq import Groq
 from openai import AzureOpenAI, BadRequestError, OpenAI
 import google.generativeai as genai
+from google.cloud import aiplatform
 from simple_parsing.helpers.serialization.serializable import FrozenSerializable, Serializable
 from tenacity import (
     retry,
@@ -19,10 +20,10 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
-
 from sweagent.agent.commands import Command
 from sweagent.utils.config import keys_config
 from sweagent.utils.log import get_logger
+import requests
 
 logger = get_logger("api_models")
 
@@ -950,6 +951,73 @@ class GoogleModel(BaseModel):
         self.update_stats(input_tokens, output_tokens)
         return response.text
 
+class LlamaGoogleCloudModel(BaseModel):
+    MODELS = {
+        "meta/llama-3.1-405b-instruct-maas": {
+            "max_context": 128_000,
+            "cost_per_input_token": 1.0e-6,
+            "cost_per_output_token": 1.0e-6,
+        },
+    }
+    SHORTCUTS = {
+        "vertex/llama": "meta/llama-3.1-405b-instruct-maas",
+    }
+
+    def __init__(self, args: ModelArguments, commands: list[Command]):
+        super().__init__(args, commands)
+        self.project_id = keys_config['GCLOUD_PROJECT_ID']
+        self.region = keys_config['GCLOUD_LOCATION']
+        self.endpoint = "https://us-central1-aiplatform.googleapis.com"
+        
+        aiplatform.init(project=self.project_id, location=self.region)
+
+    def history_to_messages(
+        self,
+        history: list[dict[str, str]],
+        is_demonstration: bool = False,
+    ) -> str | list[dict[str, str]]:
+        """
+        Create `messages` by filtering out all keys except for role/content per `history` turn
+        """
+        # Remove system messages if it is a demonstration
+        if is_demonstration:
+            history = [entry for entry in history if entry["role"] != "system"]
+            return "\n".join([entry["content"] for entry in history])
+        # Return history components with just role, content fields
+        return [{k: v for k, v in entry.items() if k in ["role", "content"]} for entry in history]
+    
+    @retry(
+        wait=wait_random_exponential(min=1, max=15),
+        reraise=True,
+        stop=stop_after_attempt(_MAX_RETRIES),
+        retry=retry_if_not_exception_type((CostLimitExceededError, RuntimeError)),
+    )
+    def query(self, history: list[dict[str, str]]) -> str:
+        """
+        Query the Google Vertex AI API with the given `history` and return the response.
+        """
+        headers = {
+            "Authorization": f"Bearer {keys_config['GCLOUD_ACCESS_TOKEN']}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "model": self.api_model,
+            "stream": False,
+            "messages": self.history_to_messages(history),
+        }
+
+        url = f"{self.endpoint}/v1/projects/{self.project_id}/locations/{self.region}/endpoints/openapi/chat/completions"
+
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            response_data = response.json()
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"API query failed: {e}")
+
+        # Extract and return the response content
+        return response_data["choices"][0]["message"]["content"]
 
 class HumanModel(BaseModel):
     MODELS = {"human": {}}
@@ -1138,6 +1206,8 @@ def get_model(args: ModelArguments, commands: list[Command] | None = None):
         return GroqModel(args, commands)
     elif args.model_name in GoogleModel.SHORTCUTS:
         return GoogleModel(args, commands)
+    elif args.model_name in LlamaGoogleCloudModel.SHORTCUTS:
+        return LlamaGoogleCloudModel(args, commands)
     elif args.model_name == "instant_empty_submit":
         return InstantEmptySubmitTestModel(args, commands)
     else:
