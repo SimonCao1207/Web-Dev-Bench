@@ -1,0 +1,11 @@
+services:
+  server:
+    volumes:
+      - ./:/app
+    build:
+      context: .
+    ports:
+      - 8000:5000
+    # network_mode: bridge
+    # extra_hosts:
+      # - host.docker.internal:host-gateway
