@@ -179,25 +179,35 @@ def mask(in_dir, out_dir, api_ids, docker_path, image_tag="my_image_tag", contai
     subprocess.run(['git', 'add', '.'], cwd=out_dir, check=True)
     subprocess.run(['git', 'commit', '-m', 'init'], cwd=out_dir, check=True)
     
-    image = build_image(docker_path, image_tag)
-    container = run_container(image_tag=image_tag, container_name=container_name)
+    # image = build_image(docker_path, image_tag)
+    # container = run_container(image_tag=image_tag, container_name=container_name)
     
     result = False
-    if container:
-        result = fetch_logs(container)
-        # Stop and remove the container after logs are fetched
-        container.stop()
-        container.remove()
-        print(f"Container '{container_name}' has been stopped and removed.")
+
+    # if container:
+    #     result = fetch_logs(container)
+    #     # Stop and remove the container after logs are fetched
+    #     container.stop()
+    #     container.remove()
+    #     print(f"Container '{container_name}' has been stopped and removed.")
     
-    if image_remove:
-        client.images.remove(image=image_tag, force=True)
-        print(f"Image '{image_tag}' has been removed.")
+    # if image_remove:
+    #     client.images.remove(image=image_tag, force=True)
+    #     print(f"Image '{image_tag}' has been removed.")
 
     return result
 
+import argparse
+parser = argparse.ArgumentParser(description="Mask APIs in a web application directory.")
+parser.add_argument(
+    '--api_ids', 
+    nargs='+',  # Allow multiple API IDs as a list
+    required=True, 
+    help="List of API IDs to be masked"
+)
+args = parser.parse_args()
 
-original_dir = '/Users/khuongle/Documents/web_bench/flask-realworld-example-app'
-dup_dir = '/Users/khuongle/Documents/web_bench/realworld_masked/attempt2'
+original_dir = '/root/web_bench/flask-realworld-example-app'
+dup_dir = f"/root/web_bench/realworld_masked/attempt{'_'.join(args.api_ids)}"
 docker_dir = dup_dir
-print(mask(original_dir, dup_dir, [3], docker_dir, image_remove=True))
+print(mask(original_dir, dup_dir, args.api_ids, docker_dir, image_remove=True))
