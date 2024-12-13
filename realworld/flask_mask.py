@@ -91,6 +91,7 @@ def create_file_with_dirs(file_path):
     if not path.exists():
         path.touch()
 
+
 def add_task_instance_prefix(api_ids):
     return f"""
     Objective:
@@ -108,6 +109,11 @@ def add_task_instance_prefix(api_ids):
     - Follow best practices for modular and maintainable code.
     
     """
+
+
+def format_api(endpoint, method):
+    return f"@blueprint.route('{endpoint}', methods=('{method}',))"
+
 
 def mask(in_dir, out_dir, api_ids, docker_path, image_tag="my_image_tag", container_name="my_container", image_remove=False):
     """
@@ -147,7 +153,7 @@ def mask(in_dir, out_dir, api_ids, docker_path, image_tag="my_image_tag", contai
                                 masking = 0
                         else:
                             for api in apis:
-                                if api["endpoint"] in line and api["method"] in line:
+                                if format_api(api["endpoint"], api["method"]) in line:
                                     masking = 1
                                     if "def" in line:
                                         masking = 2
@@ -210,4 +216,5 @@ args = parser.parse_args()
 original_dir = '/root/web_bench/flask-realworld-example-app'
 dup_dir = f"/root/web_bench/realworld_masked/attempt{'_'.join(args.api_ids)}"
 docker_dir = dup_dir
-print(mask(original_dir, dup_dir, args.api_ids, docker_dir, image_remove=True))
+ids = [int(id) for id in args.api_ids]
+print(mask(original_dir, dup_dir, ids, docker_dir, image_remove=True))
