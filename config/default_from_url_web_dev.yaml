@@ -41,7 +41,7 @@ instance_template: |-
   
   2. **Implement the API** as specified, adding any helper functions or classes as needed. Ensure the API correctly handles specified request and response structures, including validation, error handling, and authorization if applicable.
   
-  3. **Test the API thoroughly** by locating or creating appropriate test cases based on the API documentation. Run tests to confirm functionality.
+  3. **Test the API thoroughly** by locating or creating appropriate test cases based on the API documentation. Do not modify the existing test cases in the repository to make them pass. Keep them unchanged, only run tests to confirm functionality.
   
   4. If a command fails, modify it or try a different approach. Repeat attempts with the same command are unlikely to work unless modified.
   
@@ -52,8 +52,6 @@ instance_template: |-
   7. Check both the **open file** and **current working directory** (displayed after each command) since some commands may change them. Verify edits and correct indentation, as mistakes can occur.
   
   8. You may need to install the repository from source to execute certain commands; consider this if you encounter installation issues.
-
-  9. Do not modify the unit tests in the repository to make them pass. Keep them unchanged.
 
   (Open file: {open_file})
   (Current directory: {working_dir})
