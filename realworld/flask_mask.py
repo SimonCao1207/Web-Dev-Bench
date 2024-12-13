@@ -93,22 +93,41 @@ def create_file_with_dirs(file_path):
 
 
 def add_task_instance_prefix(api_ids):
-    return f"""
-    Objective:
-    Develop and implement API endpoints for a Flask backend application.
+    if (len(api_ids) > 1):
+        return f"""
+        Objective:
+        Develop and implement API endpoints for a Flask backend application.
 
-    Task Details:
-    The APIs to be implemented are identified by their unique IDs, as follows: {", ".join(map(str, api_ids))}. 
-    Detailed descriptions of each API, including their purpose, endpoints, methods, 
-    and expected behavior, are provided below in JSON format.
+        Task Details:
+        The APIs to be implemented are identified by their unique IDs, as follows: {", ".join(map(str, api_ids))}. 
+        Detailed descriptions of each API, including their purpose, endpoints, methods, 
+        and expected behavior, are provided below in JSON format.
 
-    Requirements:
-    - Implement each API according to its description and specified behavior.
-    - Ensure proper handling of request and response data using Flask conventions.
-    - Use appropriate authentication and validation mechanisms where necessary.
-    - Follow best practices for modular and maintainable code.
-    
-    """
+        Requirements:
+        - Implement each API according to its description and specified behavior.
+        - Ensure proper handling of request and response data using Flask conventions.
+        - Use appropriate authentication and validation mechanisms where necessary.
+        - Follow best practices for modular and maintainable code.
+        
+        """
+    else:
+        return f"""
+        Objective:
+        Develop and implement a new API endpoint for a Flask backend application.
+
+        Task Details:
+        Detailed descriptions of each API, including their purpose, endpoints, methods, 
+        and expected behavior, are provided below in JSON format.
+        The API to be implemented has the ID {api_ids[0]}. Refer to the JSON format below and implement it exactly as described.
+
+        Requirements:
+        - Implement each API according to its description and specified behavior.
+        - Ensure proper handling of request and response data using Flask conventions.
+        - Use appropriate authentication and validation mechanisms where necessary.
+        - Follow best practices for modular and maintainable code.
+        
+        """
+        
 
 
 def format_api(endpoint, method):

@@ -53,6 +53,8 @@ instance_template: |-
   
   8. You may need to install the repository from source to execute certain commands; consider this if you encounter installation issues.
 
+  9. Do not modify the unit tests in the repository to make them pass. Keep them unchanged.
+
   (Open file: {open_file})
   (Current directory: {working_dir})
   bash-$
