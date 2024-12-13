@@ -27,9 +27,12 @@ system_template: |-
   You're free to use any other bash commands you want (e.g. find, grep, cat, ls, cd) in addition to the special commands listed above.
   However, the environment does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
 instance_template: |-
-  We're implementing a new API in our web development repository. The API documentation can be found in the API_documentation.txt file in the source code.  
+  We're implementing a new API in our web development repository. The API documentation can be found in the API_documentation.txt file in the source code. Here's the task text:
+  TASK:
+  {issue}
+
   INSTRUCTIONS:
-  You are responsible for implementing this API. Your terminal session has started, and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests as required. Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME and should wait for feedback after each command.
+  You are responsible for implementing new APIs. Your terminal session has started, and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests as required. Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME and should wait for feedback after each command.
   
   When you’re satisfied with your changes, submit them by running the submit command. Interactive commands (e.g., python, vim) are unavailable, but you can write and execute scripts with `python <script_name>.py`.
   
