@@ -31,8 +31,9 @@ Extract API documentation from a web backend development repository and convert 
 
 ## 👩‍💻 Inference
 
-
-Run agent and generate patches:
+### 1. Create human demonstration trajectory:
+- An important way to show LMs how to use commands and interact with the environment is through providing a demonstration - which is basically a completed `trajectory` that the LM can learn from.
+- We manually generate a trajectory by running the agent with flag `--model human_thought` in the following script.
 ```bash
 python run.py \
   --model <model_name> \
@@ -40,9 +41,10 @@ python run.py \
   --repo_path <path_to_local_repository> \
   --config_file <path_to_yaml_configuration_file> \
   --environment_setup <path_to_bash_script_for_web_repo_setup> \
-  --apply_patch_locally
 
 ```
+### 2. Run agent and generate patches:
+
 
 - Example: 
 ```bash
@@ -58,8 +60,8 @@ python run.py \
 
 ## 🧪 Evaluation
 
-### Level 1 test
-- These unit tests, commonly found in most web backend repositories, ensure API correctness and security under various conditions.
+### Level 1 test (already provided)
+- These unit tests, commonly found in most web backend repositories, ensure API correctness and security under various conditions. Run `pytest` to run the unit tests. 
 - A test case passes if the last API response has:
     - Correct Response Codes: Expected status codes (e.g., 200, 404).
     - Valid Structure and Contents: Proper format (e.g., JSON) with all required fields.
@@ -67,7 +69,7 @@ python run.py \
     - Boundary Cases: Missing fields, invalid data (e.g., non-email, null), exceeding limits (e.g., large strings), and unsupported methods.
     - Authentication: Access without credentials, expired/invalid tokens, or unauthorized roles.
 
-### Level 2 test
+### Level 2 test (LLM generated)
 
 - For level 2 evaluation, we try to simulate multiple users interacting with the website with their own trajectories and interleave those trajectories. We tries to make the final combined trajectory to cover as much cases as possible to validate the functionality and data integrity even when the API call is successful or failure.
 
@@ -77,6 +79,42 @@ python run.py \
 
 - To evaluate, move the `custom_evaluation` directory inside the folder you want to evaluate, then run the following script with a running docker.
     ```bash
-    python level2_dockertest.py" 
+    python level2_dockertest.py
     ```
 - Then, the final result is stored in `test_level2_resp.json` in the evaluating directory including the number of correct tests with their corresponding responses.
+    - Example: 
+    ```bash
+     {
+        "request_id": 0,
+        "status_code": 200,
+        "reason": "OK",
+        "data": {
+            "user": {
+                "bio": null,
+                "email": "testuser1@example.com",
+                "image": null,
+                "username": "testuser1"
+            }
+        }
+    },
+    {
+        "request_id": 1,
+        "status_code": 200,
+        "reason": "OK",
+        "data": {
+            "user": {
+                "bio": null,
+                "email": "testuser2@example.com",
+                "image": null,
+                "username": "testuser2"
+            }
+        }
+    },
+    ...
+    ```
+
+## Result
+- TODO: realworld-flask
+- Only 2 out of 19 APIs are implemented correctly at the right place. 
+- Only one of them passes the unit tests (level 1).
+- TODO : discuss about it 
