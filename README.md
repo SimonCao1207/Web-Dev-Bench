@@ -1,6 +1,7 @@
-Web-Dev Bench is a benchmark to evaluate LLM agents’ abilities on modern web backend development tasks with the most-used frameworks (Flask - Python, Django - Python, Spring Boot - Java, Laravel - PHP, Express.js - JS). 
+# Web-Dev Benchmarking
+Web-Dev Bench is a benchmark to evaluate LLM agents’ abilities on modern web backend development tasks with the most-used frameworks (Flask - Python, Django - Python, Spring Boot - Java, Laravel - PHP, Express.js - JS).
 
-We follow the ![SWE agent](https://swe-agent.com/latest/) and simulate a coding environment. In that environment, an agent could search, view, edit files, and submit the final codebase for evaluation.
+We follow the <a href="https://swe-agent.com/latest/"><strong>SWE agent</strong></a> and simulate a coding environment. In that environment, an agent could search, view, edit files, and submit the final codebase for evaluation.
 
 The Web-Dev-Bench pipeline consists of two steps. First, the agent processes an input task instance and generates a local patch aimed at addressing the issue—this step is called inference. The second step involves evaluating the patch to ensure that it successfully completes the task instance.
 
@@ -22,7 +23,7 @@ Extract API documentation from a web backend development repository and convert 
 - To formulate a task for the agent, randomly mask implemented APIs from the original codebase of the repository.
 - Tasks are categorized into multiple levels by the number of masked APIs (1 API, 10% APIs, 20% APIs, 50% APIs, 100% APIs).
 
-- Choose sets of masked API ids and run the following script (currently supported for Flask-based web backend repo). This will generate a repository with the specified APIs masked.
+- Select a set of masked API IDs and run the script below (currently only supported for Flask-based web backend repositories). This will generate a repository with the specified APIs masked.
 
     ```bash
     python realworld/flask_mask.py --api_ids <list_of_masked_API_ids>
@@ -57,8 +58,25 @@ python run.py \
 
 ## 🧪 Evaluation
 
-For level 2 evaluation, we try to simulate multiple users interacting with the website with their own trajectories and interleave those trajectories. We tries to make the final combined trajectory to cover as much cases as possible to validate the functionality and data integrity even when the API call is successful or failure.
+### Level 1 test
+- These unit tests, commonly found in most web backend repositories, ensure API correctness and security under various conditions.
+- A test case passes if the last API response has:
+    - Correct Response Codes: Expected status codes (e.g., 200, 404).
+    - Valid Structure and Contents: Proper format (e.g., JSON) with all required fields.
+- Essential Test Scenarios:
+    - Boundary Cases: Missing fields, invalid data (e.g., non-email, null), exceeding limits (e.g., large strings), and unsupported methods.
+    - Authentication: Access without credentials, expired/invalid tokens, or unauthorized roles.
 
-How to build it: We use a while loop to prompt LLMs to generate the final trajectory. First, given the instructions, API documentation, and the current trajectory, the LLM is asked to continue develop the trajectory by generating more API calls satisfying our requirements. After that, we give the instructions, requirements, the API documentation, and the new combined trajectory, and ask the LLMs to verify if the new combined trajectory pass the requirements. If it does, stop the while loop, otherwise continue.
+### Level 2 test
 
-To evaluate, move the custom_evaluation directory inside the folder you want to evaluate, then run "python level2_dockertest.py" with a running docker. Then, the final result is stored in test_level2_resp.json in the evaluating directory including the number of correct tests with their corresponding responses.
+- For level 2 evaluation, we try to simulate multiple users interacting with the website with their own trajectories and interleave those trajectories. We tries to make the final combined trajectory to cover as much cases as possible to validate the functionality and data integrity even when the API call is successful or failure.
+
+- How to build it: 
+    - We use a while loop to prompt LLMs to generate the final trajectory. First, given the instructions, API documentation, and the current trajectory, the LLM is asked to continue develop the trajectory by generating more API calls satisfying our requirements. 
+    - After that, we give the instructions, requirements, the API documentation, and the new combined trajectory, and ask the LLMs to verify if the new combined trajectory pass the requirements. If it does, stop the while loop, otherwise continue.
+
+- To evaluate, move the `custom_evaluation` directory inside the folder you want to evaluate, then run the following script with a running docker.
+    ```bash
+    python level2_dockertest.py" 
+    ```
+- Then, the final result is stored in `test_level2_resp.json` in the evaluating directory including the number of correct tests with their corresponding responses.
