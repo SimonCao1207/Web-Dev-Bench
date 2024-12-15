@@ -113,8 +113,13 @@ python run.py \
     ...
     ```
 
-## Result
-- TODO: realworld-flask
-- Only 2 out of 19 APIs are implemented correctly at the right place. 
-- Only one of them passes the unit tests (level 1).
-- TODO : discuss about it 
+## Experiment
+### 1. Repository selection
+- There are two sources for us to choose repositories which are <a href="https://github.com/gothinkster/realworld">realworld</a> and <a href="https://github.com/sdil/open-production-web-projects">open-source repositories</a>. 
+### 2. Result
+- We experimented the pipeline with <a href="https://github.com/gothinkster/flask-realworld-example-app">flask-realworld-example-app
+</a> which is a Flask-base medium-sized repository and contains all fundamental concepts of back-end web developments. 
+- We test 19 instances, each masking one of 19 APIs. The model agent used is `llama3.1-70b-instruct-berkeley`. Only 2 of the 19 APIs are correctly implemented in the appropriate location, and only one passes the level 1 unit tests.
+
+### 3. Discussion
+- The agent struggles with identifying the correct implementation location and navigating through separate database model files to implement the API accurately.
